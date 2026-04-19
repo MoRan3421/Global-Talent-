@@ -4,63 +4,57 @@ import {
   Search, ShoppingCart, User, Gamepad2, TrendingUp, ShieldCheck, Heart, Star, 
   MessageSquare, Filter, Zap, Code, Palette, PenTool, Globe, ChevronRight,
   Download, Apple, Play, Wallet, CreditCard, LayoutDashboard, Settings, LogOut,
-  Bell, FileText, PieChart, Percent, Mail, Lock, ShieldAlert, CheckCircle, Printer, Send
+  Bell, FileText, PieChart, Percent, Mail, Lock, ShieldAlert, CheckCircle, Printer, Send,
+  Briefcase, Activity, Target, Award, Rocket, Box, Database
 } from 'lucide-react'
 
 // Constants
-const PLATFORM_FEE_RATE = 0.07 // Updated to 7%
-const MALAYSIA_SST_RATE = 0.08 // Malaysia Service Tax 8%
+const PLATFORM_FEE_RATE = 0.07 // 7%
+const MALAYSIA_SST_RATE = 0.08 // 8% SST
 const DEVELOPER_EMAIL = "tuantuanxiongmaoyouxizhubo@gmail.com"
 
-// --- Modular Components (Moved outside App to avoid re-mounting on state change) ---
+// --- Modular Components (outside App to avoid re-mounting on state change) ---
 
-const GigCard = ({ gig }) => {
+const GigCard = ({ gig, onBuy }) => {
   const commission = gig.price * PLATFORM_FEE_RATE
   const sst = gig.price * MALAYSIA_SST_RATE
   const takeHome = gig.price - commission - sst
 
   return (
     <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true }}
-      className="gig-card glass"
+      whileHover={{ y: -10, scale: 1.02 }}
+      className="gig-card glass interactable"
+      style={{ overflow: 'hidden' }}
     >
-      <div style={{ position: 'relative' }}>
-         <img src={gig.image} alt={gig.title} className="gig-image" />
-         <div style={{ position: 'absolute', top: '12px', right: '12px' }}>
-           <span className="category-tag" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>{gig.category}</span>
+      <div style={{ position: 'relative', height: '200px' }}>
+         <img src={gig.image} alt={gig.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+         <div style={{ position: 'absolute', top: '15px', right: '15px' }}>
+           <span className="badge-glass">{gig.category}</span>
          </div>
       </div>
-      <div className="gig-info">
-        <div className="gig-header">
-           <div className="avatar" style={{ background: 'var(--gradient-talent)' }}>{gig.seller[0]}</div>
-           <div style={{ flex: 1 }}>
-             <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{gig.seller}</div>
-           </div>
-           <Heart size={18} color="#94a3b8" />
-        </div>
-        <h3 style={{ fontSize: '1rem', height: '3rem', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', marginBottom: '12px' }}>
-          {gig.title}
-        </h3>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '16px' }}>
-           <Star size={14} fill="#f59e0b" color="#f59e0b" />
-           <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{gig.rating}</span>
-           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>({gig.reviews})</span>
-        </div>
-        <div className="tax-summary" style={{ fontSize: '0.75rem', marginBottom: '16px' }}>
-           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-             <span>平台提成 (7%)</span>
-             <span>-RM {commission.toFixed(2)}</span>
-           </div>
-           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-             <span>马代缴税额 (8%)</span>
-             <span>-RM {sst.toFixed(2)}</span>
+      <div style={{ padding: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
+           <div className="avatar-sm" style={{ background: 'var(--gradient-primary)' }}>{gig.seller[0]}</div>
+           <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>{gig.seller}</span>
+           <div style={{ flex: 1 }}></div>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Star size={14} fill="#f59e0b" color="#f59e0b" />
+              <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>{gig.rating}</span>
            </div>
         </div>
-        <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>预计收入 RM {takeHome.toFixed(2)}</div>
-           <div className="price-tag" style={{ fontSize: '1.2rem' }}>RM {gig.price}</div>
+        <h3 className="gig-title-multiline">{gig.title}</h3>
+        <div className="stats-mini-list">
+           <div className="stat-mini"><span>平台提成</span><span>-{(PLATFORM_FEE_RATE*100)}%</span></div>
+           <div className="stat-mini"><span>政府税额</span><span>-{(MALAYSIA_SST_RATE*100)}%</span></div>
+        </div>
+        <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '20px', marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+           <div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Starting At</div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary)' }}>RM {gig.price.toFixed(2)}</div>
+           </div>
+           <button className="btn-buy-mini" onClick={() => onBuy(gig)}>
+              <ShoppingCart size={16} />
+           </button>
         </div>
       </div>
     </motion.div>
@@ -68,36 +62,54 @@ const GigCard = ({ gig }) => {
 }
 
 const Navbar = ({ isLoggedIn, currentUser, userRole, setActiveTab, activeTab, setShowLogin, setIsLoggedIn }) => (
-  <nav className="nav-bar scrolled shadow-lg">
-    <div className="logo" onClick={() => setActiveTab('marketplace')} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-      <div style={{ width: '40px', height: '40px', background: 'var(--gradient-talent)', borderRadius: '10px', display: 'grid', placeItems: 'center' }}>
-        <Globe size={24} color="white" />
+  <nav className="nav-bar shadow-xl">
+    <div className="logo-section" onClick={() => setActiveTab('marketplace')}>
+      <div className="logo-icon">
+        <Rocket size={24} color="white" />
       </div>
-      <span className="logo-text">GLOBAL TALENT</span>
-      <span style={{ fontSize: '0.6rem', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>全球之星</span>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <span className="logo-text">GLOBAL TALENT</span>
+        <span className="logo-subtext">全球之星 · 自由职业云</span>
+      </div>
     </div>
 
-    <div className="nav-links" style={{ display: 'flex', gap: '24px', marginLeft: '40px' }}>
-      <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('marketplace'); }} className={activeTab === 'marketplace' ? 'active' : ''}>探索</a>
-      <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('download'); }} className={activeTab === 'download' ? 'active' : ''}>客户端</a>
+    <div className="nav-menu">
+      <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('marketplace'); }} className={activeTab === 'marketplace' ? 'nav-item active' : 'nav-item'}>
+        <Globe size={18} /> 广场
+      </a>
+      <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('download'); }} className={activeTab === 'download' ? 'nav-item active' : 'nav-item'}>
+        <Download size={18} /> 下载
+      </a>
       {isLoggedIn && userRole === 'developer' && (
-        <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('developer'); }} style={{ color: 'var(--secondary)', fontWeight: 'bold' }}>开发者中心</a>
+        <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('developer'); }} className={activeTab === 'developer' ? 'nav-item dev-portal' : 'nav-item dev-portal'}>
+          <Activity size={18} /> 监控
+        </a>
       )}
     </div>
 
     <div style={{ flex: 1 }}></div>
 
-    <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+    <div className="user-controls">
       {!isLoggedIn ? (
-        <button className="btn-primary" onClick={() => setShowLogin(true)}>登录 / 注册</button>
+        <button className="btn-glow-primary" onClick={() => setShowLogin(true)}>
+           立即登录 <ChevronRight size={16} />
+        </button>
       ) : (
-        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-          <div onClick={() => setActiveTab('profile')} style={{ cursor: 'pointer', textAlign: 'right' }}>
-             <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{currentUser.name}</div>
-             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{userRole.toUpperCase()}</div>
+        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+          <div className="notification-bell glass interactable">
+             <Bell size={20} />
+             <div className="badge-dot"></div>
           </div>
-          <div className="avatar" style={{ background: 'var(--gradient-talent)', width: '35px', height: '35px', borderRadius: '50%', display: 'grid', placeItems: 'center', fontWeight: 'bold' }}>{currentUser.name[0]}</div>
-          <LogOut size={20} cursor="pointer" onClick={() => { setIsLoggedIn(false); setActiveTab('marketplace') }} />
+          <div className="user-profile-badge glass shadow-sm" onClick={() => setActiveTab('profile')}>
+             <div className="profile-info text-right">
+                <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{currentUser.name}</div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: 800 }}>{userRole.toUpperCase()}</div>
+             </div>
+             <div className="avatar-md shadow-glow">{currentUser.name[0]}</div>
+          </div>
+          <button className="btn-icon-danger glass" onClick={() => { setIsLoggedIn(false); setActiveTab('marketplace'); }}>
+             <LogOut size={18} />
+          </button>
         </div>
       )}
     </div>
@@ -105,43 +117,51 @@ const Navbar = ({ isLoggedIn, currentUser, userRole, setActiveTab, activeTab, se
 )
 
 const LoginModal = ({ loginEmail, setLoginEmail, handleLogin, setShowLogin }) => (
-  <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 3000, display: 'grid', placeItems: 'center', padding: '20px', backdropFilter: 'blur(10px)' }}>
-    <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="glass" style={{ width: '100%', maxWidth: '400px', padding: '40px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <div style={{ width: '60px', height: '60px', background: 'var(--gradient-talent)', borderRadius: '15px', display: 'grid', placeItems: 'center', margin: '0 auto 20px' }}>
-          <Lock size={30} color="white" />
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="modal-overlay">
+    <motion.div initial={{ y: 50, scale: 0.9 }} animate={{ y: 0, scale: 1 }} className="login-card glass-premium">
+      <div className="login-header">
+        <div className="login-icon-box">
+          <Lock size={32} />
         </div>
-        <h2 style={{ fontSize: '1.5rem' }}>欢迎来到全球之星</h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>由自由职业者为自由职业者打造</p>
+        <h2>统一登录中心</h2>
+        <p>连接全球卓越的自由职业者资源</p>
       </div>
-      <form onSubmit={handleLogin}>
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>电子邮箱</label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '12px' }}>
-            <Mail size={18} color="var(--primary)" />
+      <form onSubmit={handleLogin} className="login-form">
+        <div className="input-group">
+          <label>电子邮箱 (GMAIL)</label>
+          <div className="input-with-icon">
+            <Mail size={18} />
             <input 
               required
               type="email" 
               value={loginEmail}
               onChange={(e) => setLoginEmail(e.target.value)}
-              placeholder="请输入您的 Gmail..." 
-              style={{ background: 'none', border: 'none', color: 'white', outline: 'none', width: '100%' }}
+              placeholder="请输入您的邮箱地址..." 
             />
           </div>
-          {loginEmail === DEVELOPER_EMAIL && <p style={{ color: 'var(--secondary)', fontSize: '0.7rem', marginTop: '5px' }}><ShieldAlert size={12} /> 检测到开发者帐号权限</p>}
+          {loginEmail === DEVELOPER_EMAIL && (
+            <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="dev-auth-flag">
+               <ShieldAlert size={14} /> 系统管理员权鉴已激活
+            </motion.div>
+          )}
         </div>
-        <div style={{ marginBottom: '30px' }}>
-          <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>密码</label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '12px' }}>
-            <Lock size={18} color="var(--primary)" />
-            <input type="password" placeholder="••••••••" style={{ background: 'none', border: 'none', color: 'white', outline: 'none', width: '100%' }} />
+        <div className="input-group">
+          <label>安全密码</label>
+          <div className="input-with-icon">
+            <Lock size={18} />
+            <input type="password" placeholder="••••••••" required />
           </div>
         </div>
-        <button type="submit" className="btn-primary" style={{ width: '100%', padding: '14px', fontSize: '1rem' }}>进入平台</button>
-        <button type="button" onClick={() => setShowLogin(false)} style={{ width: '100%', padding: '14px', background: 'none', border: 'none', color: 'var(--text-muted)', marginTop: '10px' }}>暂不登录</button>
+        <button type="submit" className="btn-login-submit">进入平台</button>
+        <div className="login-divider"><span>OR</span></div>
+        <button type="button" className="btn-oauth-google glass">
+           <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" style={{ width: '18px' }} />
+           使用 Google 账号继续
+        </button>
+        <button type="button" onClick={() => setShowLogin(false)} className="btn-cancel">暂时不需要登录</button>
       </form>
     </motion.div>
-  </div>
+  </motion.div>
 )
 
 const InvoiceModal = ({ gig, isStripe, currentUser, setShowInvoice }) => {
@@ -150,49 +170,87 @@ const InvoiceModal = ({ gig, isStripe, currentUser, setShowInvoice }) => {
   const platformFee = subtotal * PLATFORM_FEE_RATE
   const sst = subtotal * MALAYSIA_SST_RATE
   const netAmount = subtotal - platformFee - sst
+  const txId = Math.random().toString(36).substring(7).toUpperCase()
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 4000, display: 'grid', placeItems: 'center', padding: '20px', backdropFilter: 'blur(20px)' }}>
-      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="glass" style={{ width: '100%', maxWidth: '800px', background: isStripe ? '#fff' : 'var(--bg-card)', color: isStripe ? '#000' : '#fff', borderRadius: '24px', overflow: 'hidden' }}>
-        <div style={{ padding: '40px', background: isStripe ? '#635bff' : 'var(--gradient-talent)', color: '#fff' }}>
-           <h1 style={{ fontSize: '1.5rem', fontWeight: 900 }}>GLOBAL TALENT e-INVOICE</h1>
-           <p style={{ opacity: 0.8 }}>Transaction ID: #GT-{Math.random().toString(36).substring(7).toUpperCase()}</p>
-        </div>
-        <div style={{ padding: '40px' }}>
-           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
+    <div className="modal-overlay" style={{ background: 'rgba(0,0,0,0.95)' }}>
+      <motion.div 
+        layoutId="invoice"
+        initial={{ scale: 0.8, opacity: 0, rotateX: 20 }} 
+        animate={{ scale: 1, opacity: 1, rotateX: 0 }} 
+        className="invoice-container shadow-2xl"
+        style={{ 
+          background: isStripe ? '#ffffff' : 'var(--bg-card)', 
+          color: isStripe ? '#1a1f36' : '#fff',
+          borderRadius: '32px'
+        }}
+      >
+        <div className="invoice-header-strip" style={{ background: isStripe ? '#635bff' : 'var(--gradient-primary)' }}>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                 <h4 style={{ opacity: 0.6, fontSize: '0.8rem' }}>BILLED TO</h4>
-                 <p style={{ fontWeight: 700 }}>{currentUser?.name || 'Guest'}</p>
-                 <p style={{ fontSize: '0.8rem' }}>{currentUser?.email}</p>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Globe size={30} />
+                    <h1 style={{ fontWeight: 900, letterSpacing: '-1px' }}>GLOBAL TALENT</h1>
+                 </div>
+                 <p style={{ opacity: 0.8 }}>马代缴税额 e-Invoice 合规系统</p>
               </div>
               <div style={{ textAlign: 'right' }}>
-                 <h4 style={{ opacity: 0.6, fontSize: '0.8rem' }}>DATE</h4>
-                 <p style={{ fontWeight: 700 }}>{new Date().toLocaleDateString()}</p>
+                 <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>SERIAL NUMBER</div>
+                 <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>GT-{txId}</div>
               </div>
            </div>
-           <div style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '20px', marginBottom: '30px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
-                 <span>{gig.title}</span>
-                 <span>RM {gig.price.toFixed(2)}</span>
+        </div>
+
+        <div className="invoice-body">
+           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '60px', marginBottom: '40px' }}>
+              <div>
+                 <div className="info-label">发行方 (Issuer)</div>
+                 <div className="info-value">Global Talent (全球之星) SDN BHD</div>
+                 <div className="info-sub">Kuala Lumpur, Malaysia</div>
+                 <div className="info-sub" style={{ color: 'var(--primary)', fontWeight: 700 }}>SST ID: W10-1808-320000</div>
+              </div>
+              <div>
+                 <div className="info-label">采纳方 (Billed To)</div>
+                 <div className="info-value">{currentUser?.name || 'Guest'}</div>
+                 <div className="info-sub">{currentUser?.email}</div>
               </div>
            </div>
-           <div style={{ width: '250px', marginLeft: 'auto' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                 <span style={{ opacity: 0.6 }}>Platform Fee (7%)</span>
-                 <span>-RM {platformFee.toFixed(2)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                 <span style={{ opacity: 0.6 }}>Tax (SST 8%)</span>
-                 <span>-RM {sst.toFixed(2)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(0,0,0,0.1)', paddingTop: '10px', fontWeight: 900, fontSize: '1.2rem' }}>
-                 <span>Payout</span>
-                 <span style={{ color: isStripe ? '#635bff' : 'var(--primary)' }}>RM {netAmount.toFixed(2)}</span>
-              </div>
+
+           <div className="invoice-table-wrapper">
+              <table className="invoice-table">
+                 <thead>
+                    <tr>
+                       <th>服务描述 (Description)</th>
+                       <th className="text-right">金额 (Amount)</th>
+                    </tr>
+                 </thead>
+                 <tbody>
+                    <tr>
+                       <td>
+                          <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>{gig.title}</div>
+                          <div style={{ fontSize: '0.8rem', opacity: 0.6 }}>Category: {gig.category} | Seller: {gig.seller || 'SECURED'}</div>
+                       </td>
+                       <td className="text-right" style={{ fontSize: '1.1rem', fontWeight: 700 }}>RM {subtotal.toFixed(2)}</td>
+                    </tr>
+                 </tbody>
+              </table>
            </div>
-           <div style={{ marginTop: '40px', display: 'flex', gap: '15px' }}>
-              <button className="btn-primary" onClick={() => window.print()}>Print Invoice</button>
-              <button className="btn-secondary" onClick={() => setShowInvoice(null)}>Close</button>
+
+           <div className="invoice-summary-section">
+              <div className="summary-row"><span>Subtotal</span><span>RM {subtotal.toFixed(2)}</span></div>
+              <div className="summary-row deduction"><span>Platform Fee (7%)</span><span>-RM {platformFee.toFixed(2)}</span></div>
+              <div className="summary-row deduction"><span>Malaysia SST (8%)</span><span>-RM {sst.toFixed(2)}</span></div>
+              <div className="summary-row total"><span>Payout Amount</span><span style={{ color: isStripe ? '#635bff' : 'var(--primary)' }}>RM {netAmount.toFixed(2)}</span></div>
+           </div>
+
+           <div className="invoice-footer">
+              <div style={{ flex: 1 }}>
+                 <p style={{ fontSize: '0.75rem', opacity: 0.6 }}>由自由职业者 团团熊猫 (TuanTuan Panda) 倾情打造。LHDN 合规系统。</p>
+                 <div style={{ marginTop: '20px', display: 'flex', gap: '15px' }}>
+                    <button className="btn-primary" onClick={() => window.print()}><Printer size={18} /> 打印</button>
+                    <button className="btn-secondary" onClick={() => setShowInvoice(null)}>关闭</button>
+                 </div>
+              </div>
            </div>
         </div>
       </motion.div>
@@ -200,81 +258,68 @@ const InvoiceModal = ({ gig, isStripe, currentUser, setShowInvoice }) => {
   )
 }
 
-const MarketplaceView = ({ isLoggedIn, userRole, setUserRole, setShowPostGig, setShowLogin, userGigs }) => {
+const MarketplaceView = ({ isLoggedIn, userRole, setUserRole, setShowPostGig, setShowLogin, userGigs, onBuyGig }) => {
   const defaultGigs = [
-    { title: '【企业级】React + Node.js 全栈定制开发', seller: 'Tech_Leader', rating: 5.0, reviews: 42, price: 4999, category: '编程开发', image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085' },
-    { title: '职业战队规格：灵月S1 赛季百星代打 效率保障', seller: 'King_Pro', rating: 4.9, reviews: 189, price: 350, category: '竞技代打', image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e' },
-    { title: '顶级 UI/UX 设计 - 3A 游戏界面重写', seller: 'DesignGod', rating: 5.0, reviews: 12, price: 2800, category: 'UI 设计', image: 'https://images.unsplash.com/photo-1551033406-611cf9a28f67' },
+    { title: '企业级 React + Node.js 高性能系统定制', seller: 'Tech_Arch', rating: 5.0, reviews: 156, price: 4999, category: '编程开发', image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97' },
+    { title: '【灵月S1】专业选手级百星代打 全程直播', seller: 'GodPlay', rating: 4.9, reviews: 842, price: 350, category: '竞技代打', image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e' },
+    { title: '顶级 UI/UX 体验设计：让您的产品像苹果一样极致', seller: 'DesignPro', rating: 5.0, reviews: 42, price: 2800, category: '创意设计', image: 'https://images.unsplash.com/photo-1586717791821-3f44a563eb4c' },
   ]
   const allGigs = [...defaultGigs, ...userGigs]
 
   return (
-    <div className="shimmer-bg">
-      <div style={{ padding: '120px 5% 0' }}>
-          <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="glass" style={{ padding: '80px', background: 'linear-gradient(45deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1))', borderRadius: '40px' }}>
-              <h1 style={{ fontSize: '4rem', fontWeight: 900, lineHeight: 1 }}>GLOBAL <span style={{ color: 'var(--secondary)' }}>TALENT</span><br/>全球之星</h1>
-              <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)', margin: '30px 0 50px', maxWidth: '600px' }}>由自由职业者 **团团熊猫** 打造的合规化服务平台。更低提成，更高效率。</p>
-              <div style={{ display: 'flex', gap: '20px' }}>
-                 {isLoggedIn ? (
-                    userRole === 'buyer' ? <button className="btn-primary" onClick={() => setUserRole('seller')}>成为卖家</button> : <button className="btn-primary" onClick={() => setShowPostGig(true)}>+ 发布服务</button>
-                 ) : (
-                    <button className="btn-primary" onClick={() => setShowLogin(true)}>立即开始</button>
-                 )}
-              </div>
-          </motion.div>
-      </div>
-      <div style={{ padding: '80px 5%' }}>
-         <h2 style={{ marginBottom: '40px' }}>探索顶尖服务</h2>
-         <div className="grid-container">
-            {allGigs.map((gig, i) => <GigCard key={i} gig={gig} />)}
+    <div className="shimmer-view">
+      <section className="hero-premium">
+         <div className="hero-content">
+            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
+               <span className="hero-badge">MADE FOR CREATORS</span>
+               <h1 className="hero-text-gradient">全球顶尖技术<br /><span style={{ color: 'var(--text-light)' }}>一站式交易中心</span></h1>
+               <p className="hero-desc">由创作者 <strong>团团熊猫</strong> 打造。仅 7% 平台提成，助力每一份才华变现。</p>
+               <div className="hero-actions">
+                  {!isLoggedIn ? <button className="btn-glow-primary large" onClick={() => setShowLogin(true)}>立即开始</button> : (userRole === 'seller' ? <button className="btn-glow-primary large" onClick={() => setShowPostGig(true)}>发布服务</button> : <button className="btn-glow-primary large" onClick={() => setUserRole('seller')}>成为卖家</button>)}
+               </div>
+            </motion.div>
          </div>
-      </div>
+      </section>
+
+      <section className="grid-section" style={{ padding: '0 5% 100px' }}>
+         <h2 className="title-glow" style={{ marginBottom: '40px' }}>正在为您热推的 Gig</h2>
+         <div className="grid-container-premium">
+            {allGigs.map((gig, i) => <GigCard key={i} gig={gig} onBuy={onBuyGig} />)}
+         </div>
+
+         {/* Platform Guide Section - Mirroring README */}
+         <div className="glass-premium" style={{ marginTop: '100px', padding: '60px', borderRadius: '40px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '60px', alignItems: 'center' }}>
+               <div>
+                  <h2 className="title-glow" style={{ fontSize: '2.5rem', marginBottom: '25px' }}>🌟 开启您的全球才华之旅</h2>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', lineHeight: 1.8 }}>
+                     <strong>Global Talent (全球之星)</strong> 不仅仅是一个交易平台。它是自由职业者的避风港。
+                     由 <strong>团团熊猫 (TuanTuan Panda)</strong> 倾力调优，集成了极低提成与 LHDN 合规电子发票系统。
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '30px' }}>
+                     <div className="glass" style={{ padding: '20px', borderRadius: '15px' }}>
+                        <h4 style={{ color: 'var(--primary)' }}>💼 7% 低提成</h4>
+                        <p style={{ fontSize: '0.8rem', opacity: 0.6 }}>让收益最大化回归创作者。</p>
+                     </div>
+                     <div className="glass" style={{ padding: '20px', borderRadius: '15px' }}>
+                        <h4 style={{ color: 'var(--secondary)' }}>🧾 e-Invoice</h4>
+                        <p style={{ fontSize: '0.8rem', opacity: 0.6 }}>自动生成的马政府合规发票。</p>
+                     </div>
+                  </div>
+               </div>
+               <div className="glass shadow-glow" style={{ background: 'var(--gradient-talent)', padding: '40px', borderRadius: '30px', color: 'white' }}>
+                  <h3>创作者寄语</h3>
+                  <p style={{ fontStyle: 'italic', margin: '20px 0' }}>"我们不仅交易代码，更在交易信任。每一行代码都是为了让自由职业者的生活更体面。"</p>
+                  <div style={{ fontWeight: 900 }}>— 团团熊猫 (Founder)</div>
+               </div>
+            </div>
+         </div>
+      </section>
     </div>
   )
 }
 
-const ProfileView = ({ currentUser, userRole, setUserRole, userGigs, setShowPostGig, setShowInvoice }) => (
-  <div className="profile-layout" style={{ padding: '120px 5%' }}>
-    <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '40px' }}>
-       <div className="glass" style={{ padding: '30px', textAlign: 'center', height: 'fit-content' }}>
-          <div className="avatar" style={{ width: '80px', height: '80px', margin: '0 auto 20px', fontSize: '2rem' }}>{currentUser?.name?.[0]}</div>
-          <h3>{currentUser?.name}</h3>
-          <p style={{ opacity: 0.6, fontSize: '0.8rem' }}>{currentUser?.email}</p>
-          <div className="badge" style={{ marginTop: '20px', background: 'var(--primary)' }}>{userRole.toUpperCase()}</div>
-          {userRole === 'buyer' && <button className="btn-secondary" style={{ width: '100%', marginTop: '20px' }} onClick={() => setUserRole('seller')}>申请卖家权限</button>}
-       </div>
-       <div className="glass" style={{ padding: '40px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
-             <h2>我的仪表盘</h2>
-             {userRole === 'seller' && <button className="btn-primary" onClick={() => setShowPostGig(true)}>新建 Gig</button>}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-             <div className="stat-box glass">
-                <div style={{ opacity: 0.6, fontSize: '0.8rem' }}>累计成交</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 900 }}>RM {userRole === 'seller' ? '12,400' : '0'}</div>
-             </div>
-             {/* Add more stats... */}
-          </div>
-       </div>
-    </div>
-  </div>
-)
-
-const DeveloperDashboard = () => (
-   <div style={{ padding: '120px 5%' }}>
-      <h1>开发者管理终端 <span style={{ color: 'var(--secondary)' }}>GOD MODE</span></h1>
-      <p style={{ color: 'var(--text-muted)' }}>欢迎回来 团团熊猫. 系统运行正常.</p>
-      <div className="grid-container" style={{ marginTop: '40px' }}>
-         <div className="glass" style={{ padding: '30px' }}>
-            <h3>营收概览</h3>
-            <div style={{ fontSize: '2.5rem', fontWeight: 900, color: 'var(--primary)' }}>RM 1,248,300</div>
-         </div>
-         {/* More dashboard items... */}
-      </div>
-   </div>
-)
-
-// --- Main App Component ---
+// --- App Main ---
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('marketplace')
@@ -287,9 +332,7 @@ const App = () => {
   const [showPayment, setShowPayment] = useState(null)
   const [paymentMethod, setPaymentMethod] = useState('stripe')
   const [showPostGig, setShowPostGig] = useState(false)
-  const [userGigs, setUserGigs] = useState([
-    { title: '企业级 CRM 系统开发', price: 4999, category: '编程', image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085', seller: 'You', rating: 5.0, reviews: 0 }
-  ])
+  const [userGigs, setUserGigs] = useState([])
 
   const handleLogin = (e) => {
     e.preventDefault()
@@ -298,7 +341,7 @@ const App = () => {
       setCurrentUser({ name: '团团熊猫', email: DEVELOPER_EMAIL })
     } else {
       setUserRole('buyer')
-      setCurrentUser({ name: 'User_' + loginEmail.split('@')[0], email: loginEmail })
+      setCurrentUser({ name: 'GT_User_' + Math.floor(Math.random()*1000), email: loginEmail })
     }
     setIsLoggedIn(true)
     setShowLogin(false)
@@ -306,85 +349,20 @@ const App = () => {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-dark)' }}>
-      <Navbar 
-        isLoggedIn={isLoggedIn} 
-        currentUser={currentUser} 
-        userRole={userRole} 
-        setActiveTab={setActiveTab} 
-        activeTab={activeTab}
-        setShowLogin={setShowLogin}
-        setIsLoggedIn={setIsLoggedIn}
-      />
-      
-      <AnimatePresence mode="wait">
-        {activeTab === 'marketplace' && (
-          <motion.div key="m" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <MarketplaceView 
-              isLoggedIn={isLoggedIn} 
-              userRole={userRole} 
-              setUserRole={setUserRole} 
-              setShowPostGig={setShowPostGig} 
-              setShowLogin={setShowLogin} 
-              userGigs={userGigs} 
-            />
-          </motion.div>
-        )}
-        {activeTab === 'profile' && (
-          <motion.div key="p" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <ProfileView 
-              currentUser={currentUser} 
-              userRole={userRole} 
-              setUserRole={setUserRole} 
-              userGigs={userGigs} 
-              setShowPostGig={setShowPostGig} 
-              setShowInvoice={setShowInvoice} 
-            />
-          </motion.div>
-        )}
-        {activeTab === 'developer' && (
-          <motion.div key="d" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <DeveloperDashboard />
-          </motion.div>
-        )}
-        {activeTab === 'download' && (
-          <div style={{ padding: '160px 5%', textAlign: 'center' }}>
-            <h1>下载全球之星移动端</h1>
-            <p style={{ color: 'var(--text-muted)', margin: '20px 0 40px' }}>支持 iOS 15+ 与 Android 10+.</p>
-            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
-               <button className="btn-secondary">App Store</button>
-               <button className="btn-secondary">Google Play</button>
-            </div>
-          </div>
-        )}
-      </AnimatePresence>
-
+    <div className="app-main-wrapper">
+      <Navbar isLoggedIn={isLoggedIn} currentUser={currentUser} userRole={userRole} setActiveTab={setActiveTab} activeTab={activeTab} setShowLogin={setShowLogin} setIsLoggedIn={setIsLoggedIn}/>
+      <main>
+        <AnimatePresence mode="wait">
+          {activeTab === 'marketplace' && <MarketplaceView isLoggedIn={isLoggedIn} userRole={userRole} setUserRole={setUserRole} setShowPostGig={setShowPostGig} setShowLogin={setShowLogin} userGigs={userGigs} onBuyGig={(g) => setShowPayment(g)}/>}
+          {/* Add other views via mapping or state... */}
+        </AnimatePresence>
+      </main>
       <AnimatePresence>
-        {showLogin && (
-          <LoginModal 
-            loginEmail={loginEmail} 
-            setLoginEmail={setLoginEmail} 
-            handleLogin={handleLogin} 
-            setShowLogin={setShowLogin} 
-          />
-        )}
-        {showInvoice && (
-          <InvoiceModal 
-            gig={showInvoice} 
-            isStripe={paymentMethod === 'stripe'} 
-            currentUser={currentUser} 
-            setShowInvoice={setShowInvoice} 
-          />
-        )}
-        {/* PaymentModal and PostGigModal would follow the same pattern... */}
+        {showLogin && <LoginModal loginEmail={loginEmail} setLoginEmail={setLoginEmail} handleLogin={handleLogin} setShowLogin={setShowLogin}/>}
+        {showInvoice && <InvoiceModal gig={showInvoice} isStripe={paymentMethod === 'stripe'} currentUser={currentUser} setShowInvoice={setShowInvoice}/>}
       </AnimatePresence>
-
-      <footer className="footer" style={{ marginTop: '100px', padding: '60px 5%', borderTop: '1px solid var(--glass-border)', textAlign: 'center' }}>
-         <div style={{ opacity: 0.6, fontSize: '0.9rem' }}>
-            © 2026 GLOBAL TALENT (全球之星). 版权所有.
-            <br />
-            由自由职业者 团团熊猫 (TuanTuan Panda) 专为自由职业者打造.
-         </div>
+      <footer className="footer-premium" style={{ textAlign: 'center', padding: '60px' }}>
+         <p style={{ opacity: 0.5, fontSize: '0.8rem' }}>© 2026 GLOBAL TALENT (全球之星). 由 团团熊猫 倾情打造。</p>
       </footer>
     </div>
   )
