@@ -37,6 +37,10 @@ const CATEGORIES = [
   { id: 'writing', name: '写作翻译', icon: PenTool },
   { id: 'marketing', name: '数字营销', icon: TrendingUp },
   { id: 'data', name: '数据处理', icon: Database },
+  { id: 'video', name: '视频动画', icon: Activity },
+  { id: 'music', name: '音乐音频', icon: Zap },
+  { id: 'business', name: '商务服务', icon: Briefcase },
+  { id: 'ai', name: 'AI服务', icon: Sparkles },
 ]
 
 // --- Mock Data ---
@@ -607,7 +611,7 @@ const PostGigModal = ({ onClose, onSave, currentUser }) => {
 }
 
 // --- Enhanced Navbar ---
-const Navbar = ({ isLoggedIn, currentUser, userRole, setActiveTab, activeTab, setShowLogin, showMessages, showOrders, favorites, onSearch }) => (
+const Navbar = ({ isLoggedIn, currentUser, userRole, setActiveTab, activeTab, setShowLogin, showMessages, showOrders, showAdmin, showSellerDashboard, favorites, onSearch }) => (
   <nav className="nav-bar">
     <div className="logo-section" onClick={() => setActiveTab('marketplace')}>
       <div className="logo-icon"><Rocket size={24} color="white" /></div>
@@ -630,7 +634,6 @@ const Navbar = ({ isLoggedIn, currentUser, userRole, setActiveTab, activeTab, se
     <div className="nav-menu">
       <a href="#" className={activeTab === 'marketplace' ? 'active' : ''} onClick={() => setActiveTab('marketplace')}><Globe size={18}/> 广场</a>
       <a href="#" className={activeTab === 'download' ? 'active' : ''} onClick={() => setActiveTab('download')}><Download size={18}/> 下载</a>
-       {isLoggedIn && userRole === 'developer' && <a href="#" onClick={() => setActiveTab('developer')} className="dev-portal"><Activity size={18}/> 监控</a>}
     </div>
     <div style={{ flex: 1 }}></div>
     
@@ -638,6 +641,20 @@ const Navbar = ({ isLoggedIn, currentUser, userRole, setActiveTab, activeTab, se
       <button className="btn-glow-primary" onClick={() => setShowLogin(true)}>登录</button>
     ) : (
       <div className="nav-actions">
+        {/* Admin Panel - Only for developer */}
+        {userRole === 'developer' && (
+          <button className="nav-btn" onClick={showAdmin} title="管理员面板">
+            <ShieldCheck size={20} />
+          </button>
+        )}
+        
+        {/* Seller Dashboard - For seller and developer */}
+        {(userRole === 'seller' || userRole === 'developer') && (
+          <button className="nav-btn" onClick={showSellerDashboard} title="卖家工作台">
+            <LayoutDashboard size={20} />
+          </button>
+        )}
+        
         {/* Messages */}
         <button className="nav-btn" onClick={showMessages}>
           <MessageSquare size={20} />
@@ -690,7 +707,7 @@ const CategoryFilter = ({ activeCategory, onChange }) => (
 )
 
 // --- Enhanced Profile View ---
-const ProfileView = ({ user, gigs, orders, onPostGig, onViewGig }) => {
+const ProfileView = ({ user, gigs, orders, onPostGig, onViewGig, userAvatar, onAvatarUpload }) => {
   const userGigs = gigs.filter(g => g.seller === user.name)
   const completedOrders = orders.filter(o => o.status === 'completed').length
   
@@ -699,7 +716,11 @@ const ProfileView = ({ user, gigs, orders, onPostGig, onViewGig }) => {
       {/* Profile Header */}
       <div className="glass-premium p-8 mb-8">
         <div className="flex items-start gap-8">
-          <Avatar name={user.name} size="xl" />
+          <AvatarUpload 
+            currentAvatar={userAvatar} 
+            userName={user.name} 
+            onUpload={onAvatarUpload}
+          />
           <div className="flex-1">
             <div className="flex items-center gap-4 mb-4">
               <h1 className="text-3xl font-bold">{user.name}</h1>
@@ -885,6 +906,323 @@ const SellerDashboard = ({ user, orders, gigs, onClose }) => {
   )
 }
 
+// --- Admin Panel ---
+const AdminPanel = ({ users, gigs, orders, onClose }) => {
+  const stats = {
+    totalUsers: users.length,
+    totalGigs: gigs.length,
+    totalOrders: orders.length,
+    totalRevenue: orders.filter(o => o.status === 'completed').reduce((sum, o) => sum + o.price, 0),
+    pendingOrders: orders.filter(o => o.status === 'pending').length,
+  }
+  
+  return (
+    <div className="page-view" style={{ padding: '100px 5%' }}>
+      <div className="glass-premium p-8">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center">
+              <ShieldCheck size={24} className="text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">管理员控制台</h2>
+              <p className="text-white/50 text-sm">系统概览与管理</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="btn-icon"><X size={20} /></button>
+        </div>
+        
+        {/* Stats Grid */}
+        <div className="grid grid-cols-3 gap-6 mb-8">
+          <div className="bg-gradient-to-br from-indigo-500/20 to-purple-500/20 p-6 rounded-2xl">
+            <div className="flex items-center gap-3 mb-2">
+              <Users size={20} className="text-indigo-400" />
+              <span className="text-white/60">总用户数</span>
+            </div>
+            <div className="text-3xl font-bold text-indigo-400">{stats.totalUsers}</div>
+          </div>
+          <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 p-6 rounded-2xl">
+            <div className="flex items-center gap-3 mb-2">
+              <Box size={20} className="text-green-400" />
+              <span className="text-white/60">服务总数</span>
+            </div>
+            <div className="text-3xl font-bold text-green-400">{stats.totalGigs}</div>
+          </div>
+          <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 p-6 rounded-2xl">
+            <div className="flex items-center gap-3 mb-2">
+              <ShoppingCart size={20} className="text-yellow-400" />
+              <span className="text-white/60">订单总数</span>
+            </div>
+            <div className="text-3xl font-bold text-yellow-400">{stats.totalOrders}</div>
+          </div>
+        </div>
+        
+        {/* Revenue & Orders */}
+        <div className="grid grid-cols-2 gap-6 mb-8">
+          <div className="bg-gradient-to-br from-pink-500/20 to-rose-500/20 p-6 rounded-2xl">
+            <div className="flex items-center gap-3 mb-2">
+              <DollarSign size={20} className="text-pink-400" />
+              <span className="text-white/60">平台总收入</span>
+            </div>
+            <div className="text-3xl font-bold text-pink-400">RM {stats.totalRevenue.toFixed(2)}</div>
+          </div>
+          <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 p-6 rounded-2xl">
+            <div className="flex items-center gap-3 mb-2">
+              <Clock3 size={20} className="text-blue-400" />
+              <span className="text-white/60">待处理订单</span>
+            </div>
+            <div className="text-3xl font-bold text-blue-400">{stats.pendingOrders}</div>
+          </div>
+        </div>
+        
+        {/* Recent Orders */}
+        <h3 className="text-xl font-bold mb-4">最近订单</h3>
+        <div className="space-y-3 max-h-96 overflow-y-auto">
+          {orders.slice(0, 10).map(order => (
+            <div key={order.id} className="bg-white/5 p-4 rounded-xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-3 h-3 rounded-full ${
+                  order.status === 'completed' ? 'bg-green-500' :
+                  order.status === 'in_progress' ? 'bg-yellow-500' :
+                  order.status === 'pending' ? 'bg-orange-500' : 'bg-gray-500'
+                }`} />
+                <div>
+                  <h4 className="font-semibold">{order.id}</h4>
+                  <p className="text-sm text-white/60">{order.seller} → {order.buyer}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="font-bold text-indigo-400">RM {order.price}</p>
+                <p className="text-xs text-white/40">{order.date}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// --- Enhanced Orders Modal with Status Update ---
+const OrdersModalEnhanced = ({ onClose, orders, currentUser, onUpdateStatus }) => {
+  const [filter, setFilter] = useState('all')
+  
+  const getStatusBadge = (status) => {
+    const statuses = {
+      pending: { label: '待处理', variant: 'warning', color: 'text-yellow-400', bg: 'bg-yellow-500/20' },
+      in_progress: { label: '进行中', variant: 'primary', color: 'text-blue-400', bg: 'bg-blue-500/20' },
+      completed: { label: '已完成', variant: 'success', color: 'text-green-400', bg: 'bg-green-500/20' },
+      cancelled: { label: '已取消', variant: 'danger', color: 'text-red-400', bg: 'bg-red-500/20' },
+    }
+    return statuses[status] || { label: status, variant: 'default', color: 'text-gray-400', bg: 'bg-gray-500/20' }
+  }
+  
+  const filteredOrders = filter === 'all' ? orders : orders.filter(o => o.status === filter)
+  
+  const canUpdateStatus = (order) => {
+    // Seller can update orders they sold, buyer can update orders they bought
+    return order.seller === currentUser?.name || order.buyer === currentUser?.name
+  }
+  
+  const handleStatusUpdate = (orderId, newStatus) => {
+    if (onUpdateStatus) {
+      onUpdateStatus(orderId, newStatus)
+    }
+  }
+  
+  return (
+    <div className="modal-overlay">
+      <motion.div 
+        initial={{ y: 50, opacity: 0 }} 
+        animate={{ y: 0, opacity: 1 }}
+        className="glass-premium w-full max-w-5xl max-h-[85vh] overflow-hidden flex flex-col"
+      >
+        <div className="p-6 border-b border-white/10 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold">我的订单</h2>
+            <p className="text-white/50 text-sm mt-1">管理你的购买和销售订单</p>
+          </div>
+          <button onClick={onClose} className="btn-icon"><X size={20} /></button>
+        </div>
+        
+        {/* Filter Tabs */}
+        <div className="flex gap-2 p-4 border-b border-white/10 overflow-x-auto">
+          {[
+            { id: 'all', label: '全部', count: orders.length },
+            { id: 'pending', label: '待处理', count: orders.filter(o => o.status === 'pending').length },
+            { id: 'in_progress', label: '进行中', count: orders.filter(o => o.status === 'in_progress').length },
+            { id: 'completed', label: '已完成', count: orders.filter(o => o.status === 'completed').length },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setFilter(tab.id)}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${
+                filter === tab.id 
+                  ? 'bg-indigo-500 text-white' 
+                  : 'bg-white/10 text-white/70 hover:bg-white/20'
+              }`}
+            >
+              {tab.label} ({tab.count})
+            </button>
+          ))}
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="space-y-4">
+            {filteredOrders.length === 0 ? (
+              <div className="text-center py-12">
+                <Box size={48} className="mx-auto mb-4 text-white/30" />
+                <p className="text-white/50">暂无此类订单</p>
+              </div>
+            ) : (
+              filteredOrders.map(order => {
+                const status = getStatusBadge(order.status)
+                const isSeller = order.seller === currentUser?.name
+                const isBuyer = order.buyer === currentUser?.name
+                
+                return (
+                  <motion.div 
+                    key={order.id} 
+                    layout
+                    className="bg-white/5 p-5 rounded-xl hover:bg-white/10 transition-colors"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${status.bg}`}>
+                          <Briefcase className={status.color} size={24} />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold">{order.id}</h4>
+                            {isSeller && <Badge variant="primary">卖出</Badge>}
+                            {isBuyer && <Badge variant="outline">购买</Badge>}
+                          </div>
+                          <p className="text-sm text-white/60 mt-1">
+                            {isSeller ? `买家: ${order.buyer}` : `卖家: ${order.seller}`}
+                          </p>
+                          <p className="text-xs text-white/40 mt-1">创建时间: {order.date}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${status.bg} ${status.color}`}>
+                          {status.label}
+                        </span>
+                        <p className="text-xl font-bold text-indigo-400 mt-2">RM {order.price}</p>
+                        <p className="text-xs text-white/40">截止: {order.deadline}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Status Update Actions */}
+                    {canUpdateStatus(order) && (
+                      <div className="mt-4 pt-4 border-t border-white/10 flex gap-2 flex-wrap">
+                        {order.status === 'pending' && isSeller && (
+                          <>
+                            <button 
+                              onClick={() => handleStatusUpdate(order.id, 'in_progress')}
+                              className="btn-sm bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
+                            >
+                              <RefreshCw size={14} className="mr-1" /> 开始处理
+                            </button>
+                            <button 
+                              onClick={() => handleStatusUpdate(order.id, 'cancelled')}
+                              className="btn-sm bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                            >
+                              <XCircle size={14} className="mr-1" /> 取消
+                            </button>
+                          </>
+                        )}
+                        {order.status === 'in_progress' && isSeller && (
+                          <button 
+                            onClick={() => handleStatusUpdate(order.id, 'completed')}
+                            className="btn-sm bg-green-500/20 text-green-400 hover:bg-green-500/30"
+                          >
+                            <CheckCircle size={14} className="mr-1" /> 标记完成
+                          </button>
+                        )}
+                        {order.status === 'pending' && isBuyer && (
+                          <button 
+                            onClick={() => handleStatusUpdate(order.id, 'cancelled')}
+                            className="btn-sm bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                          >
+                            <XCircle size={14} className="mr-1" /> 取消订单
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </motion.div>
+                )
+              })
+            )}
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+// --- Avatar Upload Component ---
+const AvatarUpload = ({ currentAvatar, userName, onUpload }) => {
+  const [uploading, setUploading] = useState(false)
+  const inputRef = React.useRef(null)
+  
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    // Validate file type and size
+    if (!file.type.startsWith('image/')) {
+      alert('请上传图片文件')
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      alert('文件大小不能超过 2MB')
+      return
+    }
+    
+    setUploading(true)
+    try {
+      // Create local preview URL
+      const localUrl = URL.createObjectURL(file)
+      
+      // In production, upload to Firebase Storage
+      // const downloadUrl = await uploadImage(file, `avatars/${Date.now()}_${file.name}`)
+      
+      onUpload?.(localUrl)
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert('上传失败，请重试')
+    } finally {
+      setUploading(false)
+    }
+  }
+  
+  return (
+    <div className="relative">
+      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-3xl font-bold text-white overflow-hidden">
+        {currentAvatar ? (
+          <img src={currentAvatar} alt={userName} className="w-full h-full object-cover" />
+        ) : (
+          userName?.[0] || '?'
+        )}
+      </div>
+      <button 
+        onClick={() => inputRef.current?.click()}
+        disabled={uploading}
+        className="absolute bottom-0 right-0 w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center hover:bg-indigo-600 transition-colors disabled:opacity-50"
+      >
+        {uploading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+      </button>
+      <input 
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+    </div>
+  )
+}
+
 // --- Main App ---
 const App = () => {
   const [activeTab, setActiveTab] = useState('marketplace')
@@ -908,10 +1246,26 @@ const App = () => {
   })
   const [showMessages, setShowMessages] = useState(false)
   const [showOrders, setShowOrders] = useState(false)
+  const [showAdmin, setShowAdmin] = useState(false)
+  const [showSellerDashboard, setShowSellerDashboard] = useState(false)
   const [viewingGig, setViewingGig] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState('all')
   const [orders, setOrders] = useState(MOCK_ORDERS)
+  const [userAvatar, setUserAvatar] = useState(null)
+
+  // Order status update handler
+  const handleUpdateOrderStatus = (orderId, newStatus) => {
+    setOrders(prev => prev.map(order => 
+      order.id === orderId ? { ...order, status: newStatus } : order
+    ))
+  }
+
+  // Avatar upload handler
+  const handleAvatarUpload = (avatarUrl) => {
+    setUserAvatar(avatarUrl)
+    // In production: upload to Firebase and update user profile
+  }
 
   // Firebase Auth Listener
   useEffect(() => {
@@ -981,12 +1335,18 @@ const App = () => {
   }
 
   const defaultGigs = [
-    { id: 'default-1', title: '企业级 React + Node.js 高性能开发', seller: '团团熊猫', rating: 5.0, reviewCount: 23, price: 4999, category: '编程开发', image: techImg, tags: ['React', 'Node.js', '全栈'], description: '专业开发高性能、可扩展的企业级Web应用程序。使用最新的技术栈包括React 18、Node.js、TypeScript。' },
-    { id: 'default-2', title: '【灵月S1】专业选手级带打服务', seller: '团团熊猫', rating: 5.0, reviewCount: 156, price: 350, category: '游戏服务', image: gamingImg, tags: ['王者荣耀', '代练', '排位'], description: '专业代练服务，快速上分。支持各段位，保证胜率，安全可靠。' },
-    { id: 'default-3', title: '3A 级 UI/UX 视觉重塑与体验设计', seller: '团团熊猫', rating: 5.0, reviewCount: 45, price: 2800, category: '创意设计', image: designImg, tags: ['UI/UX', 'Figma', '设计系统'], description: '打造世界级的用户体验。从用户研究到高保真原型，全流程设计服务。' },
-    { id: 'default-4', title: 'SEO优化与数字营销策略', seller: '团团熊猫', rating: 4.9, reviewCount: 34, price: 1200, category: '数字营销', image: techImg, tags: ['SEO', '营销', '增长'], description: '提升网站排名，增加有机流量。专业的SEO策略和数字营销方案。' },
-    { id: 'default-5', title: '专业文案撰写与内容创作', seller: '团团熊猫', rating: 5.0, reviewCount: 67, price: 500, category: '写作翻译', image: designImg, tags: ['文案', '内容', '创意写作'], description: '专业的商业文案、博客文章、产品描述撰写服务。' },
-    { id: 'default-6', title: '数据分析与可视化报表', seller: '团团熊猫', rating: 4.8, reviewCount: 28, price: 1800, category: '数据处理', image: gamingImg, tags: ['数据分析', 'BI', '报表'], description: '将数据转化为洞察。专业的数据分析服务和可视化报表制作。' },
+    { id: 'default-1', title: '企业级 React + Node.js 高性能开发', seller: '团团熊猫', rating: 5.0, reviewCount: 23, price: 4999, category: '编程开发', image: techImg, tags: ['React', 'Node.js', '全栈'], description: '专业开发高性能、可扩展的企业级Web应用程序。使用最新的技术栈包括React 18、Node.js、TypeScript。', packages: [{name: '基础版', price: 4999, description: '基础功能开发', delivery: '7天'}, {name: '标准版', price: 7999, description: '完整功能+测试', delivery: '14天'}, {name: '高级版', price: 12999, description: '完整方案+维护', delivery: '30天'}] },
+    { id: 'default-2', title: '【灵月S1】专业选手级带打服务', seller: '团团熊猫', rating: 5.0, reviewCount: 156, price: 350, category: '游戏服务', image: gamingImg, tags: ['王者荣耀', '代练', '排位'], description: '专业代练服务，快速上分。支持各段位，保证胜率，安全可靠。', packages: [{name: '青铜到白银', price: 350, description: '快速提升段位', delivery: '1天'}, {name: '白银到黄金', price: 650, description: '稳定上分', delivery: '2天'}, {name: '黄金到铂金', price: 1200, description: '高效代练', delivery: '3天'}] },
+    { id: 'default-3', title: '3A 级 UI/UX 视觉重塑与体验设计', seller: '团团熊猫', rating: 5.0, reviewCount: 45, price: 2800, category: '创意设计', image: designImg, tags: ['UI/UX', 'Figma', '设计系统'], description: '打造世界级的用户体验。从用户研究到高保真原型，全流程设计服务。', packages: [{name: '基础设计', price: 2800, description: '5页面设计', delivery: '3天'}, {name: '标准方案', price: 5800, description: '15页面+原型', delivery: '7天'}, {name: '全案设计', price: 12000, description: '全平台设计系统', delivery: '14天'}] },
+    { id: 'default-4', title: 'SEO优化与数字营销策略', seller: '团团熊猫', rating: 4.9, reviewCount: 34, price: 1200, category: '数字营销', image: techImg, tags: ['SEO', '营销', '增长'], description: '提升网站排名，增加有机流量。专业的SEO策略和数字营销方案。', packages: [{name: '基础优化', price: 1200, description: '关键词优化', delivery: '7天'}, {name: '增长方案', price: 3500, description: 'SEO+内容策略', delivery: '30天'}, {name: '全案营销', price: 8000, description: '全方位数字营销', delivery: '90天'}] },
+    { id: 'default-5', title: '专业文案撰写与内容创作', seller: '团团熊猫', rating: 5.0, reviewCount: 67, price: 500, category: '写作翻译', image: designImg, tags: ['文案', '内容', '创意写作'], description: '专业的商业文案、博客文章、产品描述撰写服务。', packages: [{name: '基础版', price: 500, description: '500字文案', delivery: '1天'}, {name: '标准版', price: 1200, description: '1500字深度文', delivery: '3天'}, {name: '高级版', price: 2500, description: '3000字+SEO优化', delivery: '5天'}] },
+    { id: 'default-6', title: '数据分析与可视化报表', seller: '团团熊猫', rating: 4.8, reviewCount: 28, price: 1800, category: '数据处理', image: gamingImg, tags: ['数据分析', 'BI', '报表'], description: '将数据转化为洞察。专业的数据分析服务和可视化报表制作。', packages: [{name: '基础分析', price: 1800, description: '数据清洗+报表', delivery: '3天'}, {name: '深度分析', price: 4500, description: '分析+可视化', delivery: '7天'}, {name: '企业方案', price: 12000, description: 'BI系统搭建', delivery: '30天'}] },
+    { id: 'default-7', title: '专业视频剪辑与后期制作', seller: '小明设计', rating: 4.9, reviewCount: 89, price: 800, category: '视频动画', image: designImg, tags: ['视频剪辑', '后期', 'PR'], description: '专业视频剪辑服务，包含调色、字幕、特效等后期制作。', packages: [{name: '短视频', price: 800, description: '1分钟内视频', delivery: '2天'}, {name: '标准视频', price: 2000, description: '5分钟内视频', delivery: '5天'}, {name: '长视频', price: 4500, description: '20分钟内视频', delivery: '10天'}] },
+    { id: 'default-8', title: '原创音乐制作与配乐', seller: '游戏大神', rating: 5.0, reviewCount: 42, price: 1500, category: '音乐音频', image: gamingImg, tags: ['音乐', '配乐', '原创'], description: '原创音乐制作，适用于视频配乐、游戏音效、广告音乐等。', packages: [{name: '短音频', price: 1500, description: '30秒音乐', delivery: '3天'}, {name: '标准音乐', price: 3500, description: '3分钟音乐', delivery: '7天'}, {name: '完整作品', price: 8000, description: '专辑制作', delivery: '30天'}] },
+    { id: 'default-9', title: 'AI图像生成与修图', seller: '团团熊猫', rating: 4.7, reviewCount: 156, price: 200, category: 'AI服务', image: techImg, tags: ['AI', 'Midjourney', '修图'], description: '使用AI技术生成高质量图像，包含商业修图、背景替换等服务。', packages: [{name: '基础版', price: 200, description: '5张AI图', delivery: '1天'}, {name: '标准版', price: 600, description: '20张+修图', delivery: '3天'}, {name: '商业版', price: 2000, description: '100张+精修', delivery: '7天'}] },
+    { id: 'default-10', title: '商业咨询与项目管理', seller: '小明设计', rating: 4.8, reviewCount: 23, price: 5000, category: '商务服务', image: techImg, tags: ['咨询', '项目管理', '商业'], description: '专业的商业咨询服务，包含项目管理、流程优化、战略规划。', packages: [{name: '单次咨询', price: 5000, description: '2小时咨询', delivery: '1天'}, {name: '项目顾问', price: 20000, description: '月度顾问服务', delivery: '30天'}, {name: '企业方案', price: 50000, description: '全案咨询服务', delivery: '90天'}] },
+    { id: 'default-11', title: '多语言翻译与本地化', seller: '游戏大神', rating: 4.9, reviewCount: 312, price: 300, category: '写作翻译', image: designImg, tags: ['翻译', '本地化', '多语言'], description: '专业多语言翻译服务，支持中英文互译及小语种翻译。', packages: [{name: '基础翻译', price: 300, description: '500字', delivery: '1天'}, {name: '标准翻译', price: 800, description: '2000字', delivery: '3天'}, {name: '专业翻译', price: 2000, description: '5000字+校对', delivery: '7天'}] },
+    { id: 'default-12', title: 'Python自动化脚本开发', seller: '团团熊猫', rating: 5.0, reviewCount: 78, price: 1200, category: '编程开发', image: techImg, tags: ['Python', '自动化', '脚本'], description: '专业Python自动化脚本开发，包含爬虫、数据处理、自动化办公。', packages: [{name: '简单脚本', price: 1200, description: '基础功能', delivery: '2天'}, {name: '复杂脚本', price: 3500, description: '多功能集成', delivery: '5天'}, {name: '系统方案', price: 8000, description: '完整解决方案', delivery: '14天'}] },
   ]
 
   const allGigs = [...defaultGigs, ...userGigs]
@@ -1108,6 +1468,8 @@ const App = () => {
         setShowLogin={setShowLogin}
         showMessages={() => setShowMessages(true)}
         showOrders={() => setShowOrders(true)}
+        showAdmin={() => setShowAdmin(true)}
+        showSellerDashboard={() => setShowSellerDashboard(true)}
         favorites={favorites}
         onSearch={setSearchQuery}
       />
@@ -1169,6 +1531,8 @@ const App = () => {
               orders={orders}
               onPostGig={() => setShowPostGig(true)}
               onViewGig={setViewingGig}
+              userAvatar={userAvatar}
+              onAvatarUpload={handleAvatarUpload}
             />
           )}
           
@@ -1305,10 +1669,29 @@ const App = () => {
       )}
       
       {showOrders && (
-        <OrdersModal 
+        <OrdersModalEnhanced 
           onClose={() => setShowOrders(false)}
           orders={orders}
-          onViewOrder={(order) => console.log('View order:', order)}
+          currentUser={currentUser}
+          onUpdateStatus={handleUpdateOrderStatus}
+        />
+      )}
+      
+      {showAdmin && userRole === 'developer' && (
+        <AdminPanel 
+          users={MOCK_USERS}
+          gigs={allGigs}
+          orders={orders}
+          onClose={() => setShowAdmin(false)}
+        />
+      )}
+      
+      {showSellerDashboard && (
+        <SellerDashboard 
+          user={currentUser}
+          orders={orders}
+          gigs={userGigs}
+          onClose={() => setShowSellerDashboard(false)}
         />
       )}
       
