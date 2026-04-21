@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion'
 import { 
   Search, ShoppingCart, User, Gamepad2, TrendingUp, ShieldCheck, Heart, Star, 
   MessageSquare, Filter, Zap, Code, Palette, PenTool, Globe, ChevronRight,
@@ -27,6 +27,171 @@ import designImg from './assets/gigs/design.png'
 const PLATFORM_FEE_RATE = 0.07 
 const MALAYSIA_SST_RATE = 0.08 
 const DEVELOPER_EMAIL = "tuantuanxiongmaoyouxizhubo@gmail.com"
+
+// --- Visual Effects Components ---
+const ParticleBackground = () => {
+  const particles = Array.from({ length: 50 }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    delay: Math.random() * 15,
+    duration: 10 + Math.random() * 20,
+    size: 2 + Math.random() * 4,
+  }))
+
+  return (
+    <div className="particles-container">
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className="absolute rounded-full"
+          style={{
+            left: `${p.left}%`,
+            width: p.size,
+            height: p.size,
+            background: `rgba(${100 + Math.random() * 155}, ${100 + Math.random() * 155}, 255, ${0.3 + Math.random() * 0.4})`,
+            boxShadow: `0 0 ${p.size * 2}px currentColor`,
+          }}
+          initial={{ y: '100vh', opacity: 0 }}
+          animate={{
+            y: '-10vh',
+            opacity: [0, 1, 1, 0],
+          }}
+          transition={{
+            duration: p.duration,
+            delay: p.delay,
+            repeat: Infinity,
+            ease: 'linear',
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+const StarField = () => {
+  const stars = Array.from({ length: 100 }, (_, i) => ({
+    id: i,
+    top: Math.random() * 100,
+    left: Math.random() * 100,
+    size: 1 + Math.random() * 2,
+    delay: Math.random() * 3,
+    duration: 2 + Math.random() * 3,
+  }))
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-0">
+      {stars.map((star) => (
+        <motion.div
+          key={star.id}
+          className="absolute rounded-full bg-white"
+          style={{
+            top: `${star.top}%`,
+            left: `${star.left}%`,
+            width: star.size,
+            height: star.size,
+          }}
+          animate={{
+            opacity: [0.2, 1, 0.2],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: star.duration,
+            delay: star.delay,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+const FloatingOrbs = () => {
+  const orbs = [
+    { color: '#6366f1', size: 300, x: '10%', y: '20%' },
+    { color: '#ec4899', size: 250, x: '80%', y: '60%' },
+    { color: '#8b5cf6', size: 200, x: '60%', y: '10%' },
+    { color: '#06b6d4', size: 180, x: '30%', y: '70%' },
+  ]
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      {orbs.map((orb, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full blur-3xl opacity-20"
+          style={{
+            width: orb.size,
+            height: orb.size,
+            background: `radial-gradient(circle, ${orb.color} 0%, transparent 70%)`,
+            left: orb.x,
+            top: orb.y,
+          }}
+          animate={{
+            x: [0, 50, -30, 0],
+            y: [0, -30, 50, 0],
+            scale: [1, 1.1, 0.9, 1],
+          }}
+          transition={{
+            duration: 15 + i * 3,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+const GlowingButton = ({ children, onClick, className = '' }) => {
+  return (
+    <motion.button
+      onClick={onClick}
+      className={`relative overflow-hidden ${className}`}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
+        animate={{
+          backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: 'linear',
+        }}
+        style={{ backgroundSize: '200% 200%' }}
+      />
+      <span className="relative z-10">{children}</span>
+    </motion.button>
+  )
+}
+
+const AnimatedCard = ({ children, className = '' }) => {
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+  const rotateX = useTransform(y, [-100, 100], [10, -10])
+  const rotateY = useTransform(x, [-100, 100], [-10, 10])
+
+  return (
+    <motion.div
+      className={`relative ${className}`}
+      style={{
+        x,
+        y,
+        rotateX,
+        rotateY,
+        transformStyle: 'preserve-3d',
+        perspective: 1000,
+      }}
+      whileHover={{ scale: 1.02 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+    >
+      {children}
+    </motion.div>
+  )
+}
 
 // --- Categories ---
 const CATEGORIES = [
@@ -95,14 +260,53 @@ const Badge = ({ children, variant = 'default', className = '' }) => {
   )
 }
 
-// --- Gig Card Component ---
-const GigCard = ({ gig, onBuy, onView, isFavorite, onToggleFavorite }) => (
-  <motion.div 
-    layoutId={`gig-${gig.id}`} 
-    whileHover={{ y: -12, scale: 1.02 }} 
-    className="gig-card-v2 glass-premium gradient-border cursor-pointer"
-    onClick={() => onView(gig)}
-  >
+// --- Gig Card Component (Enhanced 3D) ---
+const GigCard = ({ gig, onBuy, onView, isFavorite, onToggleFavorite }) => {
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+  const rotateX = useTransform(y, [-100, 100], [8, -8])
+  const rotateY = useTransform(x, [-100, 100], [-8, 8])
+  const springConfig = { stiffness: 300, damping: 30 }
+  const rotateXSpring = useSpring(rotateX, springConfig)
+  const rotateYSpring = useSpring(rotateY, springConfig)
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const centerX = rect.left + rect.width / 2
+    const centerY = rect.top + rect.height / 2
+    x.set(e.clientX - centerX)
+    y.set(e.clientY - centerY)
+  }
+
+  const handleMouseLeave = () => {
+    x.set(0)
+    y.set(0)
+  }
+
+  return (
+    <motion.div 
+      layoutId={`gig-${gig.id}`}
+      className="gig-card-v2 glass-premium gradient-border cursor-pointer relative group"
+      onClick={() => onView(gig)}
+      style={{
+        rotateX: rotateXSpring,
+        rotateY: rotateYSpring,
+        transformStyle: 'preserve-3d',
+        perspective: 1000,
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      whileHover={{ 
+        z: 20,
+        boxShadow: '0 25px 50px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1), 0 0 40px rgba(99, 102, 241, 0.3)'
+      }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+    >
+      {/* Glow effect on hover */}
+      <motion.div
+        className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-[28px] opacity-0 group-hover:opacity-60 blur-xl transition-opacity duration-500"
+        style={{ zIndex: -1 }}
+      />
     <div className="gig-image-wrapper">
        <img src={gig.image} alt={gig.title} />
        <div className="gig-category-overlay">
@@ -147,7 +351,8 @@ const GigCard = ({ gig, onBuy, onView, isFavorite, onToggleFavorite }) => (
       </div>
     </div>
   </motion.div>
-)
+  )
+}
 
 // --- Gig Detail Modal ---
 const GigDetailModal = ({ gig, onClose, onBuy, onMessage, isFavorite, onToggleFavorite }) => {
@@ -1458,7 +1663,12 @@ const App = () => {
   }
 
   return (
-    <div className="app-container">
+    <div className="app-container aurora-bg">
+      {/* Visual Effects Background */}
+      <FloatingOrbs />
+      <StarField />
+      <ParticleBackground />
+      
       <Navbar 
         isLoggedIn={isLoggedIn} 
         currentUser={currentUser} 
@@ -1478,11 +1688,85 @@ const App = () => {
         <AnimatePresence mode="wait">
           {activeTab === 'marketplace' && (
             <motion.div key="m" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <section className="hero-v3">
-                <div className="hero-v3-inner">
-                  <div>
-                    <h1 className="hero-v3-title">释放才华<br /><span>主宰未来</span></h1>
-                    <p className="hero-v3-desc">自由职业者的避风港。7% 低提成，马来西亚合规税制。</p>
+              <section className="hero-v3 relative overflow-hidden">
+                {/* Floating decorative elements */}
+                <motion.div 
+                  className="absolute top-20 left-10 w-32 h-32 rounded-full bg-indigo-500/20 blur-3xl floating"
+                  animate={{ y: [0, -30, 0], scale: [1, 1.2, 1] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <motion.div 
+                  className="absolute bottom-40 right-20 w-48 h-48 rounded-full bg-pink-500/20 blur-3xl floating floating-delay-2"
+                  animate={{ y: [0, -40, 0], scale: [1, 1.1, 1] }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                />
+                
+                <div className="hero-v3-inner relative z-10">
+                  <div className="text-center">
+                    <motion.div
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                      <motion.div
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-6"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.3, duration: 0.5 }}
+                        whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }}
+                      >
+                        <Sparkles size={16} className="text-yellow-400" />
+                        <span className="text-sm font-medium text-white/80">全新升级 v2.0</span>
+                      </motion.div>
+                    </motion.div>
+                    
+                    <motion.h1 
+                      className="hero-v3-title"
+                      initial={{ opacity: 0, y: 40 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                      <span className="neon-text">释放才华</span>
+                      <br />
+                      <motion.span 
+                        className="rainbow-text"
+                        animate={{ backgroundPosition: ['0% 50%', '200% 50%'] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                        style={{ backgroundSize: '200% auto' }}
+                      >主宰未来</motion.span>
+                    </motion.h1>
+                    
+                    <motion.p 
+                      className="hero-v3-desc"
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4, duration: 0.8 }}
+                    >
+                      自由职业者的避风港。7% 低提成，马来西亚合规税制。
+                    </motion.p>
+                    
+                    <motion.div
+                      className="flex gap-4 justify-center mt-8"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.6, duration: 0.8 }}
+                    >
+                      <motion.button
+                        className="btn-glow-primary px-8 py-4 text-lg font-semibold rounded-2xl neon-glow"
+                        whileHover={{ scale: 1.05, boxShadow: '0 0 40px rgba(99, 102, 241, 0.6)' }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setShowLogin(true)}
+                      >
+                        开始探索
+                      </motion.button>
+                      <motion.button
+                        className="btn-glass px-8 py-4 text-lg font-semibold rounded-2xl"
+                        whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        了解更多
+                      </motion.button>
+                    </motion.div>
                   </div>
                 </div>
               </section>
@@ -1568,84 +1852,192 @@ const App = () => {
         </AnimatePresence>
       </main>
 
-      {/* Modals */}
+      {/* Modals - Enhanced Login */}
       {showLogin && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" style={{ background: 'rgba(2, 6, 23, 0.95)' }}>
+          {/* Background Effects */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <motion.div
+              className="absolute w-96 h-96 rounded-full blur-3xl"
+              style={{ background: 'rgba(99, 102, 241, 0.3)', left: '10%', top: '20%' }}
+              animate={{ x: [0, 50, 0], y: [0, -30, 0], scale: [1, 1.2, 1] }}
+              transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <motion.div
+              className="absolute w-80 h-80 rounded-full blur-3xl"
+              style={{ background: 'rgba(236, 72, 153, 0.3)', right: '10%', bottom: '20%' }}
+              animate={{ x: [0, -40, 0], y: [0, 40, 0], scale: [1, 1.1, 1] }}
+              transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </div>
+
           <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="login-card-v3 glass-premium"
+            initial={{ scale: 0.8, opacity: 0, y: 50 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            className="relative z-10"
           >
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Rocket size={32} className="text-white" />
-              </div>
-              <h2 className="text-2xl font-bold">{isSignUp ? '创建账户' : '欢迎回来'}</h2>
-              <p className="text-white/50 mt-2">自由职业者的避风港</p>
-            </div>
-            
-            {/* Google Login */}
-            <button 
-              onClick={handleGoogleLogin}
-              className="w-full bg-white text-gray-900 font-semibold py-3 rounded-xl flex items-center justify-center gap-3 mb-4 hover:bg-gray-100 transition-colors"
+            <motion.div 
+              className="login-card-v3 glass-premium relative overflow-hidden"
+              style={{ minWidth: '420px' }}
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              使用 Google 账号{isSignUp ? '注册' : '登录'}
-            </button>
-            
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/20"></div>
+              {/* Animated Border */}
+              <div className="absolute inset-0 rounded-[28px] p-[2px] bg-gradient-to-r from-indigo-500 via-purple-500 via-pink-500 to-indigo-500 opacity-60">
+                <div className="w-full h-full rounded-[26px] bg-[#0f172a]"></div>
               </div>
-              <div className="relative flex justify-center">
-                <span className="bg-[#0f172a] px-4 text-sm text-white/50">或</span>
+
+              <div className="relative z-10 p-8">
+                {/* Header */}
+                <div className="text-center mb-8">
+                  <motion.div 
+                    className="w-20 h-20 mx-auto mb-4 relative"
+                    animate={{ rotate: [0, 5, -5, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl blur-xl opacity-50 animate-pulse" />
+                    <div className="relative w-full h-full bg-gradient-to-br from-indigo-500 to-pink-500 rounded-2xl flex items-center justify-center">
+                      <Rocket size={36} className="text-white" />
+                    </div>
+                  </motion.div>
+                  
+                  <motion.h2 
+                    className="text-3xl font-bold mb-2"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    <span className="bg-gradient-to-r from-white via-indigo-200 to-white bg-clip-text text-transparent">
+                      {isSignUp ? '创建账户' : '欢迎回来'}
+                    </span>
+                  </motion.h2>
+                  
+                  <motion.p 
+                    className="text-white/50"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    自由职业者的避风港
+                  </motion.p>
+                </div>
+                
+                {/* Google Login Button */}
+                <motion.button 
+                  onClick={handleGoogleLogin}
+                  className="w-full relative overflow-hidden group"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white rounded-xl" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
+                  <div className="relative flex items-center justify-center gap-3 py-3.5">
+                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    <span className="text-gray-900 font-semibold">使用 Google 账号{isSignUp ? '注册' : '登录'}</span>
+                  </div>
+                </motion.button>
+                
+                {/* Divider */}
+                <motion.div 
+                  className="relative my-6"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-[#0f172a] px-4 text-sm text-white/40">或使用邮箱</span>
+                  </div>
+                </motion.div>
+                
+                {/* Email Login Form */}
+                <motion.form 
+                  onSubmit={handleEmailLogin} 
+                  className="space-y-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <div className="relative group">
+                    <input 
+                      type="email"
+                      placeholder="邮箱地址" 
+                      value={loginEmail} 
+                      onChange={e => setLoginEmail(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all"
+                      required
+                    />
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-500/0 via-indigo-500/10 to-pink-500/0 opacity-0 group-focus-within:opacity-100 pointer-events-none transition-opacity" />
+                  </div>
+                  
+                  <div className="relative group">
+                    <input 
+                      type="password"
+                      placeholder="密码" 
+                      value={loginPassword} 
+                      onChange={e => setLoginPassword(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all"
+                      required
+                    />
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-500/0 via-indigo-500/10 to-pink-500/0 opacity-0 group-focus-within:opacity-100 pointer-events-none transition-opacity" />
+                  </div>
+                  
+                  <motion.button 
+                    type="submit" 
+                    className="w-full relative overflow-hidden group"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="relative py-3.5 text-white font-semibold flex items-center justify-center gap-2">
+                      <Sparkles size={18} className="opacity-80" />
+                      {isSignUp ? '创建账户' : '立即登录'}
+                    </div>
+                  </motion.button>
+                </motion.form>
+                
+                {/* Toggle */}
+                <motion.p 
+                  className="text-sm text-white/40 mt-6 text-center"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  {isSignUp ? '已有账户？' : '还没有账户？'}
+                  <motion.button 
+                    onClick={() => setIsSignUp(!isSignUp)} 
+                    className="text-indigo-400 hover:text-indigo-300 ml-1.5 font-medium transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    {isSignUp ? '立即登录' : '立即注册'}
+                  </motion.button>
+                </motion.p>
               </div>
-            </div>
-            
-            {/* Email Login */}
-            <form onSubmit={handleEmailLogin} className="space-y-4">
-              <input 
-                type="email"
-                placeholder="邮箱地址" 
-                value={loginEmail} 
-                onChange={e => setLoginEmail(e.target.value)}
-                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:border-indigo-500"
-                required
-              />
-              <input 
-                type="password"
-                placeholder="密码" 
-                value={loginPassword} 
-                onChange={e => setLoginPassword(e.target.value)}
-                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:border-indigo-500"
-                required
-              />
-              <button type="submit" className="btn-glow-primary w-full justify-center">
-                {isSignUp ? '注册' : '登录'}
-              </button>
-            </form>
-            
-            <p className="text-sm text-white/50 mt-6 text-center">
-              {isSignUp ? '已有账户？' : '还没有账户？'}
-              <button 
-                onClick={() => setIsSignUp(!isSignUp)} 
-                className="text-indigo-400 hover:text-indigo-300 ml-1 font-medium"
+              
+              {/* Close Button */}
+              <motion.button 
+                onClick={() => setShowLogin(false)}
+                className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all z-20"
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
               >
-                {isSignUp ? '立即登录' : '立即注册'}
-              </button>
-            </p>
-            
-            <button 
-              onClick={() => setShowLogin(false)}
-              className="absolute top-4 right-4 btn-icon"
-            >
-              <X size={20} />
-            </button>
+                <X size={20} />
+              </motion.button>
+
+              {/* Corner Decorations */}
+              <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-indigo-500/20 to-transparent rounded-tl-[28px] pointer-events-none" />
+              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-pink-500/20 to-transparent rounded-br-[28px] pointer-events-none" />
+            </motion.div>
           </motion.div>
         </div>
       )}
