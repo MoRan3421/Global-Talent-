@@ -1,5 +1,7 @@
 {
-  "projects": {},
+  "projects": {
+    "default": "global-talent-5426f"
+  },
   "targets": {},
   "etags": {}
 }
