@@ -7,7 +7,7 @@ import {
   Bell, FileText, PieChart, Percent, Mail, Lock, ShieldAlert, CheckCircle, Printer, Send,
   Briefcase, Activity, Target, Award, Rocket, Box, Database, Clock, RefreshCw, Plus, X,
   MoreVertical, MapPin, Clock3, CheckCircle2, AlertCircle, Bookmark, Share2, Flag,
-  ChevronLeft, Edit3, Trash2, Camera, Link, Calendar,
+  ChevronLeft, Edit3, Trash2, Camera, Link, Calendar, QrCode,
   Loader2, Sparkles, Users, DollarSign, BarChart3,
   Upload, Image as ImageIcon, Menu, XCircle, Eye
 } from 'lucide-react'
@@ -2096,73 +2096,282 @@ const App = () => {
       )}
       
       {showPayment && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" style={{ background: 'rgba(2, 6, 23, 0.95)' }}>
+          {/* Animated Background */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <motion.div
+              className="absolute w-96 h-96 rounded-full blur-3xl"
+              style={{ background: 'rgba(99, 102, 241, 0.2)', left: '5%', top: '10%' }}
+              animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
+              transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <motion.div
+              className="absolute w-80 h-80 rounded-full blur-3xl"
+              style={{ background: 'rgba(236, 72, 153, 0.2)', right: '5%', bottom: '10%' }}
+              animate={{ x: [0, -20, 0], y: [0, 30, 0] }}
+              transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </div>
+
           <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="checkout-card-v3 glass-premium"
+            initial={{ scale: 0.8, opacity: 0, y: 30 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            className="checkout-card-v3 glass-premium relative overflow-hidden"
+            style={{ minWidth: '400px' }}
           >
-            <h3 className="text-xl font-bold mb-4">确认订单</h3>
-            <div className="bg-white/5 p-4 rounded-xl mb-4">
-              <p className="font-medium">{showPayment.title}</p>
-              <p className="text-2xl font-bold text-indigo-400 mt-2">RM {showPayment.price?.toFixed(2)}</p>
+            {/* Gradient Border */}
+            <div className="absolute inset-0 rounded-3xl p-[2px] bg-gradient-to-r from-indigo-500/50 via-purple-500/50 to-pink-500/50 opacity-60">
+              <div className="w-full h-full rounded-3xl bg-[#0f172a]"></div>
             </div>
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-white/60">平台服务费 (7%)</span>
-                <span>RM {(showPayment.price * 0.07).toFixed(2)}</span>
+
+            <div className="relative z-10 p-6">
+              {/* Header */}
+              <div className="text-center mb-6">
+                <motion.div 
+                  className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center"
+                  animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.05, 1] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <CreditCard size={28} className="text-white" />
+                </motion.div>
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">
+                  确认订单
+                </h3>
+                <p className="text-white/50 text-sm mt-1">安全加密支付</p>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-white/60">SST (8%)</span>
-                <span>RM {(showPayment.price * 0.08).toFixed(2)}</span>
+
+              {/* Order Details */}
+              <div className="bg-white/5 border border-white/10 p-4 rounded-xl mb-4">
+                <p className="font-medium text-white/90 line-clamp-2">{showPayment.title}</p>
+                <div className="flex items-baseline gap-2 mt-2">
+                  <span className="text-sm text-white/50">RM</span>
+                  <span className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-pink-400 bg-clip-text text-transparent">
+                    {showPayment.price?.toFixed(2)}
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between font-bold text-lg pt-3 border-t border-white/10">
-                <span>总计</span>
-                <span className="text-indigo-400">RM {(showPayment.price * 1.15).toFixed(2)}</span>
+
+              {/* Price Breakdown */}
+              <div className="space-y-3 mb-4">
+                <motion.div 
+                  className="flex justify-between text-sm"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <span className="text-white/50 flex items-center gap-2">
+                    <Percent size={14} /> 平台服务费 (7%)
+                  </span>
+                  <span className="text-white/70">RM {(showPayment.price * 0.07).toFixed(2)}</span>
+                </motion.div>
+                <motion.div 
+                  className="flex justify-between text-sm"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <span className="text-white/50 flex items-center gap-2">
+                    <Percent size={14} /> SST (8%)
+                  </span>
+                  <span className="text-white/70">RM {(showPayment.price * 0.08).toFixed(2)}</span>
+                </motion.div>
+                <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent my-3"></div>
+                <motion.div 
+                  className="flex justify-between font-bold text-lg"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <span className="text-white">总计</span>
+                  <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent text-xl">
+                    RM {(showPayment.price * 1.15).toFixed(2)}
+                  </span>
+                </motion.div>
+              </div>
+
+              {/* Security Badge */}
+              <motion.div 
+                className="flex items-center justify-center gap-2 text-xs text-white/40 mb-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                <ShieldCheck size={14} className="text-green-400" />
+                <span>256位 SSL 加密保护</span>
+              </motion.div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <motion.button 
+                  onClick={() => setShowPayment(null)} 
+                  className="flex-1 relative overflow-hidden group"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="absolute inset-0 bg-white/10 rounded-xl border border-white/20 group-hover:bg-white/15 transition-colors"></div>
+                  <span className="relative py-3 block text-white/80 font-medium">取消</span>
+                </motion.button>
+                <motion.button 
+                  onClick={handleConfirmPayment} 
+                  className="flex-1 relative overflow-hidden group"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <span className="relative py-3 block text-white font-semibold flex items-center justify-center gap-2">
+                    <Wallet size={18} /> 确认支付
+                  </span>
+                </motion.button>
               </div>
             </div>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowPayment(null)} className="btn-glass flex-1">取消</button>
-              <button onClick={handleConfirmPayment} className="btn-glow-primary flex-1">确认支付</button>
-            </div>
+
+            {/* Corner Decorations */}
+            <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-indigo-500/30 to-transparent rounded-tl-3xl pointer-events-none"></div>
+            <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tl from-pink-500/30 to-transparent rounded-br-3xl pointer-events-none"></div>
           </motion.div>
         </div>
       )}
       
       {showInvoice && (
-        <div className="modal-overlay" style={{ padding: '40px' }}>
+        <div className="modal-overlay" style={{ padding: '40px', background: 'rgba(2, 6, 23, 0.95)' }}>
+          {/* Background Effects */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <motion.div
+              className="absolute w-96 h-96 rounded-full blur-3xl"
+              style={{ background: 'rgba(99, 102, 241, 0.15)', left: '10%', top: '20%' }}
+              animate={{ x: [0, 40, 0], y: [0, -30, 0] }}
+              transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </div>
+
           <motion.div 
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="bg-white text-gray-900 rounded-3xl p-8 max-w-2xl w-full"
+            initial={{ scale: 0.9, y: 50, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            className="bg-white text-gray-900 rounded-3xl p-8 max-w-2xl w-full relative overflow-hidden shadow-2xl"
           >
+            {/* Gradient Top Border */}
+            <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+
+            {/* Invoice Header */}
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">INVOICE</h1>
-                <p className="text-gray-500 mt-1">GT-{Math.random().toString(36).toUpperCase().slice(2, 10)}</p>
+                <motion.h1 
+                  className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-indigo-700 to-pink-600 bg-clip-text text-transparent"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  INVOICE
+                </motion.h1>
+                <motion.p 
+                  className="text-gray-500 mt-1 font-mono"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  GT-{Math.random().toString(36).toUpperCase().slice(2, 10)}
+                </motion.p>
               </div>
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-pink-500 rounded-xl flex items-center justify-center">
+              <motion.div 
+                className="w-16 h-16 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+                whileHover={{ scale: 1.05, rotate: 5 }}
+              >
                 <Rocket size={32} className="text-white" />
+              </motion.div>
+            </div>
+
+            {/* Invoice Details */}
+            <motion.div 
+              className="border-t border-gray-200 py-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle size={20} className="text-green-500" />
+                <span className="text-sm text-green-600 font-medium">支付成功</span>
               </div>
-            </div>
-            <div className="border-t border-gray-200 py-6">
-              <h2 className="text-xl font-semibold mb-2">{showInvoice.title}</h2>
-              <p className="text-gray-600">卖家: {showInvoice.seller}</p>
-            </div>
-            <div className="border-t border-gray-200 py-6">
+              <h2 className="text-xl font-semibold mb-2 text-gray-900">{showInvoice.title}</h2>
+              <div className="flex items-center gap-2 text-gray-600">
+                <User size={16} />
+                <span>卖家: {showInvoice.seller}</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-500 text-sm mt-2">
+                <Calendar size={14} />
+                <span>{new Date().toLocaleDateString('zh-CN')}</span>
+              </div>
+            </motion.div>
+
+            {/* Payment Amount */}
+            <motion.div 
+              className="border-t border-gray-200 py-6 bg-gradient-to-r from-indigo-50 to-pink-50 -mx-8 px-8 my-6"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4 }}
+            >
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">支付金额</span>
-                <span className="text-3xl font-bold text-indigo-600">RM {showInvoice.price?.toFixed(2)}</span>
+                <span className="text-gray-600 font-medium">支付金额</span>
+                <span className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  RM {showInvoice.price?.toFixed(2)}
+                </span>
               </div>
-            </div>
-            <div className="flex gap-3 mt-8">
-              <button onClick={() => setShowInvoice(null)} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 rounded-xl transition-colors">
+            </motion.div>
+
+            {/* QR Code Placeholder */}
+            <motion.div 
+              className="flex justify-center mb-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <div className="bg-gray-100 p-4 rounded-xl">
+                <div className="w-32 h-32 bg-gradient-to-br from-gray-300 to-gray-400 rounded-lg flex items-center justify-center">
+                  <QrCode size={48} className="text-gray-600" />
+                </div>
+                <p className="text-xs text-gray-500 text-center mt-2">扫描二维码查看订单</p>
+              </div>
+            </motion.div>
+
+            {/* Action Buttons */}
+            <motion.div 
+              className="flex gap-3 mt-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              <motion.button 
+                onClick={() => setShowInvoice(null)} 
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 rounded-xl transition-colors"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
                 关闭
-              </button>
-              <button className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
-                <Printer size={18} /> 打印
-              </button>
-            </div>
+              </motion.button>
+              <motion.button 
+                className="flex-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Printer size={18} /> 打印发票
+              </motion.button>
+            </motion.div>
+
+            {/* Footer */}
+            <motion.div 
+              className="mt-6 pt-4 border-t border-gray-200 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+            >
+              <p className="text-xs text-gray-400">感谢您使用 Global Talent (全球之星)</p>
+              <p className="text-xs text-gray-400 mt-1">Created by TuanTuan Panda</p>
+            </motion.div>
           </motion.div>
         </div>
       )}
